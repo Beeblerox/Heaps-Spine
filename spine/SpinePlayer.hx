@@ -54,8 +54,6 @@ private class SpineContent extends h3d.prim.Primitive
 
         uploadedVertices = verticesCount;
         uploadedIndices = indexCount;
-
-        trace("alloc");
     }
 
     override function render(engine:h3d.Engine) 
@@ -182,6 +180,7 @@ class SpinePlayer extends h2d.Drawable
 
     private function renderTriangles():Void
 	{
+        trace("renderTriangles");
         var drawOrder:Array<Slot> = skeleton.drawOrder;
 		var n:Int = drawOrder.length;
 
@@ -275,12 +274,18 @@ class SpinePlayer extends h2d.Drawable
 					a = region.getColor().a;
 				}
 
+
+
 				if(atlasRegion != null)
 				{
 					if (atlasRegion.page.rendererObject != tile)
                     {
                         tile = cast atlasRegion.page.rendererObject;
                     }
+
+                    r = r * (1 + Math.sin(Math.random())) / 2;
+                    g = r * (1 + Math.sin(Math.random())) / 2;
+                    b = g * (1 + Math.sin(Math.random())) / 2;
 
                     for (v in 0...verticesLength)
                     {
