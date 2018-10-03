@@ -1,0 +1,6 @@
+-lib heaps
+-lib openfl-spine
+-js game.js
+-main Game
+-debug
+

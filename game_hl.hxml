@@ -1,0 +1,6 @@
+-lib heaps
+-lib hlsdl
+-lib openfl-spine
+-hl game.hl
+-main Game
+
