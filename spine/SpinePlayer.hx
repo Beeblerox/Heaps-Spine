@@ -1,11 +1,23 @@
 package spine;
 
+import h2d.RenderContext;
+
+import spine.Skeleton;
+import spine.SkeletonData;
+import spine.AnimationState;
+import spine.AnimationStateData;
+import spine.Slot;
+import spine.support.graphics.TextureAtlas;
+import spine.attachments.MeshAttachment;
+import spine.attachments.RegionAttachment;
+import spine.support.graphics.Color;
+
 private class SpineContent extends h3d.prim.Primitive
 {
     var vertex:hxd.FloatBuffer;
     var index:hxd.IndexBuffer;
 
-    public var vertexCount(default, null):Int = 0;
+    public var verticesCount(default, null):Int = 0;
     public var indexCount(default, null):Int = 0;
 
     var uploadedVertices:Int = 0;
@@ -13,7 +25,8 @@ private class SpineContent extends h3d.prim.Primitive
 
     public function new()
     {
-
+        vertex = new hxd.FloatBuffer();
+        index = new hxd.IndexBuffer();
     }
 
     public inline function addIndex(i:Int):Void
@@ -23,40 +36,42 @@ private class SpineContent extends h3d.prim.Primitive
 
     public inline function addVertex(x:Float, y:Float, u:Float, v:Float, r:Float, g:Float, b:Float, a:Float)
     {
-        vertex[vertexCount++] = x;
-		vertex[vertexCount++] = y;
-		vertex[vertexCount++] = u;
-		vertex[vertexCount++] = v;
-		vertex[vertexCount++] = r;
-		vertex[vertexCount++] = g;
-		vertex[vertexCount++] = b;
-		vertex[vertexCount++] = a;
+        vertex[verticesCount++] = x;
+		vertex[verticesCount++] = y;
+		vertex[verticesCount++] = u;
+		vertex[verticesCount++] = v;
+		vertex[verticesCount++] = r;
+		vertex[verticesCount++] = g;
+		vertex[verticesCount++] = b;
+		vertex[verticesCount++] = a;
     }
 
     override function alloc(engine:h3d.Engine) 
     {
-        if (index.length <= 0) return;
+        if (indexCount <= 0) return;
 		buffer = h3d.Buffer.ofFloats(vertex, 8, [RawFormat]);
 		indexes = h3d.Indexes.alloc(index);
 
-        uploadedVertices = vertexCount;
+        uploadedVertices = verticesCount;
         uploadedIndices = indexCount;
+
+        trace("alloc");
     }
 
     override function render(engine:h3d.Engine) 
     {
-		if (index.length <= 0) return;
+		if (indexCount <= 0) return;
 		flush();
-		engine.renderIndexed(buffer, indexes, 0, Std.int(indexCount / 3)); // TODO: pass number of tris...
+		engine.renderIndexed(buffer, indexes, 0, Std.int(indexCount / 3));
 	}
 
     public inline function flush() 
     {
-		var growVertices:Bool = (vertexCount >= uploadedVertices);
+		var growVertices:Bool = (verticesCount >= uploadedVertices);
         var growIndices:Bool = (indexCount >= uploadedIndices);
         
-        if (growVertices || growIndices || buffer == null || index == null ||
-            buffer.isDisposed() || index.isDisposed())
+    //    if (growVertices || growIndices || buffer == null || index == null ||
+    //        buffer.isDisposed() /*|| index.isDisposed()*/)
         {
             // dispose old buffers if there was any
             if (buffer != null && !buffer.isDisposed())
@@ -64,18 +79,20 @@ private class SpineContent extends h3d.prim.Primitive
                 buffer.dispose();
             }
 
-            if (index != null && !index.isDisposed())
+            /*if (index != null && !index.isDisposed())
             {
                 index.dispose();
-            }
+            }*/
             
             alloc(h3d.Engine.getCurrent());
-        }    
+        }
+
+
 	}
 
     public inline function reset():Void
     {
-        vertexCount = 0;
+        verticesCount = 0;
         indexCount = 0;
     }
 
@@ -91,26 +108,23 @@ private class SpineContent extends h3d.prim.Primitive
     }
 }
 
-import spine.Skeleton;
-import spine.SkeletonData;
-import spine.Slot;
-import spine.support.graphics.TextureAtlas;
-import spine.attachments.MeshAttachment;
-import spine.attachments.RegionAttachment;
-import spine.support.graphics.Color;
-
-class SpinePlayer extends Drawable 
+class SpinePlayer extends h2d.Drawable 
 {
     public var skeleton:Skeleton;
     public var timeScale:Float = 1;
+
+    public var state:AnimationState;
 
     var content:SpineContent;
 
     var _isPlay:Bool = true;
 
     var _tempVerticesArray:Array<Float>;
+    var _quadTriangles:Array<Int>;
 
-    public function new(skeletonData:SkeletonData, ?parent) 
+    var tile:h2d.Tile;
+
+    public function new(skeletonData:SkeletonData, stateData:AnimationStateData = null, ?parent) 
     {
 		super(parent);
 
@@ -119,13 +133,27 @@ class SpinePlayer extends Drawable
 
         content = new SpineContent();
 
+        _quadTriangles = new Array<Int>();
+		_quadTriangles[0] = 0;
+		_quadTriangles[1] = 1;
+		_quadTriangles[2] = 2;
+		_quadTriangles[3] = 2;
+		_quadTriangles[4] = 3;
+		_quadTriangles[5] = 0;
+
         _tempVerticesArray = new Array<Float>();
+
+        state = new AnimationState(stateData == null ? new AnimationStateData(skeletonData):stateData);
+        advanceTime(0);
     }
 
     public function advanceTime(delta:Float):Void 
     {
 		if(!_isPlay) return;
 
+        state.update(delta * timeScale);
+		state.apply(skeleton);
+		skeleton.updateWorldTransform();
 		skeleton.update(delta * timeScale);
 	}
 
@@ -137,7 +165,9 @@ class SpinePlayer extends Drawable
 
     override function draw(ctx:RenderContext) 
     {
-	//	if (!ctx.beginDrawObject(this, tile.getTexture())) return;
+		if (tile == null)   return;
+        
+        if (!ctx.beginDrawObject(this, tile.getTexture())) return;
 		content.render(ctx.engine);
 	}
 
@@ -146,6 +176,7 @@ class SpinePlayer extends Drawable
 		super.sync(ctx);
 
 	//	flush();
+        renderTriangles();
 		content.flush();
 	}
 
@@ -160,7 +191,10 @@ class SpinePlayer extends Drawable
 		var color:Int;
 		var blend:Int;
 
-        var tile:h2d.Tile = null;
+        tile = null;
+
+        var triangles:Array<Int> = null;
+		var uvs:Array<Float> = null;
 
         content.reset();
         var vertexLength:Int = 0;
@@ -170,7 +204,7 @@ class SpinePlayer extends Drawable
 		{
 			slot = drawOrder[i];
 
-            if(slot.attachment != null)
+            if (slot.attachment != null)
 			{
 				if (Std.is(slot.attachment, RegionAttachment))
 				{
@@ -181,17 +215,23 @@ class SpinePlayer extends Drawable
                 {
 					var region:MeshAttachment = cast slot.attachment;
 					
-                        vertexCount += region.getWorldVerticesLength() * 8; // 8 values per verter
-                        indexCount += region.getTriangles().length;
+                    vertexLength += region.getWorldVerticesLength() * 8; // 8 values per verter
+                    indexLength += region.getTriangles().length;
 				}
 			}
         }
 
         content.grow(vertexLength, indexLength);
 
+        var verticesLength:Int = 0;
+        var indicesLength:Int = 0;
+
         for (i in 0 ... n)
 		{
 			slot = drawOrder[i];
+
+            verticesLength = 0;
+            indicesLength = 0;
 
             slot = drawOrder[i];
 			atlasRegion = null;
@@ -203,55 +243,55 @@ class SpinePlayer extends Drawable
 				{
                     var region:RegionAttachment = cast slot.attachment;
 					region.computeWorldVertices(slot.bone, _tempVerticesArray, 0, 2);
-                    uvs = region.getUVs();
 
+                    verticesLength = 4;
+                    indicesLength = 6;
+                    
                     atlasRegion = cast region.getRegion();
                     r = region.getColor().r;
 					g = region.getColor().g;
 					b = region.getColor().b;
 					a = region.getColor().a;
 
-                    /*
+                    uvs = region.getUVs();
                     triangles = _quadTriangles;
-                    */
-
 				}
 				else if(Std.is(slot.attachment, MeshAttachment))
                 {
-					/*
-                    var region:MeshAttachment = cast slot.attachment;
-					verticesLength = 8;
-					region.computeWorldVertices(slot,0,region.getWorldVerticesLength(), _tempVerticesArray,0,2);
-					uvs = region.getUVs();
+					var region:MeshAttachment = cast slot.attachment;
+
+                    region.computeWorldVertices(slot,0,region.getWorldVerticesLength(), _tempVerticesArray,0,2);
+
+                    uvs = region.getUVs();
 					triangles = region.getTriangles();
-					atlasRegion = cast region.getRegion();
-					r = region.getColor().r;
+
+                    vertexLength = Std.int(region.getWorldVerticesLength() * 0.5);
+                    indicesLength = triangles.length;
+                    
+                    atlasRegion = cast region.getRegion();
+                    r = region.getColor().r;
 					g = region.getColor().g;
 					b = region.getColor().b;
 					a = region.getColor().a;
-                    */
 				}
 
 				if(atlasRegion != null)
 				{
-					/*
-                    if(bitmapData != atlasRegion.page.rendererObject)
-					{
-						bitmapData = cast atlasRegion.page.rendererObject;
-						this.graphics.beginBitmapFill(bitmapData,null,true,true);
-					}
+					if (atlasRegion.page.rendererObject != tile)
+                    {
+                        tile = cast atlasRegion.page.rendererObject;
+                    }
 
-					var v:Vector<Int> = ofArrayInt(triangles);
-					for(vi in 0...v.length)
-					{
-						v[vi] += t;
-					}
-					t += Std.int(_tempVerticesArray.length/2);
+                    for (v in 0...verticesLength)
+                    {
+                        content.addVertex(_tempVerticesArray[v * 2], _tempVerticesArray[v * 2 + 1], uvs[v * 2], uvs[v * 2 + 1], r, g, b, a);
+                    }
 
-					allVerticesArray = allVerticesArray.concat(ofArrayFloat(_tempVerticesArray));
-					allTriangles = allTriangles.concat(v);
-					allUvs = allUvs.concat(ofArrayFloat(uvs));
-                    */
+                    var startIndex:Int = Std.int(content.verticesCount / 8);
+                    for (i in 0...indicesLength)
+                    {
+                        content.addIndex(triangles[i] + startIndex);
+                    }
 				}
 				
 			}
