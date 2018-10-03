@@ -31,6 +31,7 @@ class Game extends hxd.App
         var skeletonData:SkeletonData = json.readSkeletonData(new spine.HeapsSkeletonFileHandle("spineboypro.json", sData));
 
         skeleton = new spine.SpinePlayer(skeletonData, s2d);
+        skeleton.state.setAnimationByName(0,"walk",true);
         skeleton.x = 300;
         skeleton.y = 500;
 

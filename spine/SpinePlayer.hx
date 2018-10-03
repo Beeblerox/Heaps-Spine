@@ -31,7 +31,8 @@ private class SpineContent extends h3d.prim.Primitive
 
     public inline function addIndex(i:Int):Void
     {
-        index[indexCount++] = i;
+        index[indexCount] = i;
+        indexCount++;
     }
 
     public inline function addVertex(x:Float, y:Float, u:Float, v:Float, r:Float, g:Float, b:Float, a:Float)
@@ -68,8 +69,8 @@ private class SpineContent extends h3d.prim.Primitive
 		var growVertices:Bool = (verticesCount >= uploadedVertices);
         var growIndices:Bool = (indexCount >= uploadedIndices);
         
-    //    if (growVertices || growIndices || buffer == null || index == null ||
-    //        buffer.isDisposed() /*|| index.isDisposed()*/)
+        if (growVertices || growIndices || buffer == null || indexes == null ||
+            buffer.isDisposed() || indexes.isDisposed())
         {
             // dispose old buffers if there was any
             if (buffer != null && !buffer.isDisposed())
@@ -77,15 +78,13 @@ private class SpineContent extends h3d.prim.Primitive
                 buffer.dispose();
             }
 
-            /*if (index != null && !index.isDisposed())
+            if (indexes != null && !indexes.isDisposed())
             {
-                index.dispose();
-            }*/
+                indexes.dispose();
+            }
             
             alloc(h3d.Engine.getCurrent());
         }
-
-
 	}
 
     public inline function reset():Void
@@ -128,6 +127,7 @@ class SpinePlayer extends h2d.Drawable
 
         skeleton = new Skeleton(skeletonData);
         skeleton.updateWorldTransform();
+        skeleton.setToSetupPose();
 
         content = new SpineContent();
 
@@ -147,7 +147,7 @@ class SpinePlayer extends h2d.Drawable
 
     public function advanceTime(delta:Float):Void 
     {
-		if(!_isPlay) return;
+		if (!_isPlay) return;
 
         state.update(delta * timeScale);
 		state.apply(skeleton);
@@ -180,12 +180,12 @@ class SpinePlayer extends h2d.Drawable
 
     private function renderTriangles():Void
 	{
-        trace("renderTriangles");
         var drawOrder:Array<Slot> = skeleton.drawOrder;
 		var n:Int = drawOrder.length;
 
         var atlasRegion:AtlasRegion;
 		var slot:Slot;
+    //    var color:Color;
 		var r:Float = 0, g:Float = 0, b:Float = 0, a:Float = 0;
 		var color:Int;
 		var blend:Int;
@@ -199,7 +199,7 @@ class SpinePlayer extends h2d.Drawable
         var vertexLength:Int = 0;
         var indexLength:Int = 0;
 
-        for (i in 0 ... n)
+        for (i in 0...n)
 		{
 			slot = drawOrder[i];
 
@@ -207,15 +207,22 @@ class SpinePlayer extends h2d.Drawable
 			{
 				if (Std.is(slot.attachment, RegionAttachment))
 				{
-					vertexLength += 4 * 8; // 8 values per verter
-                    indexLength += 6; // 6 indices per region
+					var region:RegionAttachment = cast slot.attachment;
+                    if (region.getRegion() != null)
+                    {
+                        vertexLength += 4 * 8; // 8 values per verter
+                        indexLength += 6; // 6 indices per region
+                    } 
+                    
 				}
 				else if(Std.is(slot.attachment, MeshAttachment))
                 {
 					var region:MeshAttachment = cast slot.attachment;
-					
-                    vertexLength += region.getWorldVerticesLength() * 8; // 8 values per verter
-                    indexLength += region.getTriangles().length;
+                    if (region.getRegion() != null)
+                    {
+                        vertexLength += region.getWorldVerticesLength() * 4; // 8 values per verter * 2
+                        indexLength += region.getTriangles().length;
+                    }
 				}
 			}
         }
@@ -225,7 +232,9 @@ class SpinePlayer extends h2d.Drawable
         var verticesLength:Int = 0;
         var indicesLength:Int = 0;
 
-        for (i in 0 ... n)
+        var startIndex:Int = 0;
+
+        for (i in 0...n)
 		{
 			slot = drawOrder[i];
 
@@ -234,9 +243,9 @@ class SpinePlayer extends h2d.Drawable
 
             slot = drawOrder[i];
 			atlasRegion = null;
-			_tempVerticesArray.splice(0,_tempVerticesArray.length);
+			_tempVerticesArray.splice(0, _tempVerticesArray.length);
 
-            if(slot.attachment != null)
+            if (slot.attachment != null)
 			{
 				if (Std.is(slot.attachment, RegionAttachment))
 				{
@@ -255,48 +264,44 @@ class SpinePlayer extends h2d.Drawable
                     uvs = region.getUVs();
                     triangles = _quadTriangles;
 				}
-				else if(Std.is(slot.attachment, MeshAttachment))
+				else if (Std.is(slot.attachment, MeshAttachment))
                 {
-					var region:MeshAttachment = cast slot.attachment;
-
-                    region.computeWorldVertices(slot,0,region.getWorldVerticesLength(), _tempVerticesArray,0,2);
-
+                    var region:MeshAttachment = cast slot.attachment;
+                    
+                    region.computeWorldVertices(slot, 0, region.getWorldVerticesLength(), _tempVerticesArray, 0, 2);
                     uvs = region.getUVs();
 					triangles = region.getTriangles();
 
-                    vertexLength = Std.int(region.getWorldVerticesLength() * 0.5);
+                    verticesLength = region.getWorldVerticesLength() >> 1;
                     indicesLength = triangles.length;
-                    
+
                     atlasRegion = cast region.getRegion();
                     r = region.getColor().r;
 					g = region.getColor().g;
 					b = region.getColor().b;
 					a = region.getColor().a;
 				}
-
-
-
-				if(atlasRegion != null)
+                
+				if (atlasRegion != null)
 				{
 					if (atlasRegion.page.rendererObject != tile)
                     {
                         tile = cast atlasRegion.page.rendererObject;
                     }
 
-                    r = r * (1 + Math.sin(Math.random())) / 2;
-                    g = r * (1 + Math.sin(Math.random())) / 2;
-                    b = g * (1 + Math.sin(Math.random())) / 2;
-
                     for (v in 0...verticesLength)
                     {
-                        content.addVertex(_tempVerticesArray[v * 2], _tempVerticesArray[v * 2 + 1], uvs[v * 2], uvs[v * 2 + 1], r, g, b, a);
+                        var v1 = v * 2;
+                        var v2 = v1 + 1;
+                        content.addVertex(_tempVerticesArray[v1], _tempVerticesArray[v2], uvs[v1], uvs[v2], r, g, b, a);
                     }
 
-                    var startIndex:Int = Std.int(content.verticesCount / 8);
-                    for (i in 0...indicesLength)
+                    for (ind in 0...indicesLength)
                     {
-                        content.addIndex(triangles[i] + startIndex);
+                        content.addIndex(triangles[ind] + startIndex);
                     }
+                    
+                    startIndex += verticesLength;
 				}
 				
 			}
