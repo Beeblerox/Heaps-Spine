@@ -106,7 +106,7 @@ private class SpineContent extends h3d.prim.Primitive
 
     public function clear()
     {
-        // TODO: implement it...
+        dispose();
     }
 }
 
@@ -132,7 +132,6 @@ class SpinePlayer extends h2d.Drawable
 
         skeleton = new Skeleton(skeletonData);
         skeleton.updateWorldTransform();
-        skeleton.setToSetupPose();
 
         content = new SpineContent();
 
@@ -178,7 +177,6 @@ class SpinePlayer extends h2d.Drawable
     {
 		super.sync(ctx);
 
-	//	flush();
         renderTriangles();
 		content.flush();
 	}
@@ -190,15 +188,13 @@ class SpinePlayer extends h2d.Drawable
 
         var atlasRegion:AtlasRegion;
 		var slot:Slot;
-    //    var color:Color;
+        var regionColor:spine.support.graphics.Color = null;
 		var r:Float = 0, g:Float = 0, b:Float = 0, a:Float = 0;
-		var color:Int;
-		var blend:Int;
-
-        tile = null;
+		var blend:Int; // TODO: use it...
 
         var triangles:Array<Int> = null;
 		var uvs:Array<Float> = null;
+        var colors:Array<Color> = null;
 
         content.reset();
         var vertexLength:Int = 0;
@@ -248,7 +244,6 @@ class SpinePlayer extends h2d.Drawable
 
             slot = drawOrder[i];
 			atlasRegion = null;
-			_tempVerticesArray.splice(0, _tempVerticesArray.length);
 
             if (slot.attachment != null)
 			{
@@ -261,10 +256,7 @@ class SpinePlayer extends h2d.Drawable
                     indicesLength = 6;
                     
                     atlasRegion = cast region.getRegion();
-                    r = region.getColor().r;
-					g = region.getColor().g;
-					b = region.getColor().b;
-					a = region.getColor().a;
+                    regionColor = region.getColor();
 
                     uvs = region.getUVs();
                     triangles = _quadTriangles;
@@ -275,18 +267,13 @@ class SpinePlayer extends h2d.Drawable
                     
                     region.computeWorldVertices(slot, 0, region.getWorldVerticesLength(), _tempVerticesArray, 0, 2);
                     uvs = region.getUVs();
-					triangles = region.getTriangles();
+                    triangles = region.getTriangles();
 
                     verticesLength = region.getWorldVerticesLength() >> 1;
                     indicesLength = triangles.length;
 
                     atlasRegion = cast region.getRegion();
-                    r = region.getColor().r;
-					g = region.getColor().g;
-					b = region.getColor().b;
-					a = region.getColor().a;
-
-                    
+                    regionColor = region.getColor();
 				}
                 
 				if (atlasRegion != null)
@@ -295,6 +282,11 @@ class SpinePlayer extends h2d.Drawable
                     {
                         tile = cast atlasRegion.page.rendererObject;
                     }
+
+                    r = regionColor.r;
+                    g = regionColor.g;
+                    b = regionColor.b;
+                    a = regionColor.a;
 
                     for (v in 0...verticesLength)
                     {
@@ -310,9 +302,7 @@ class SpinePlayer extends h2d.Drawable
                     
                     startIndex += verticesLength;
 				}
-				
 			}
-
         }
 	}
 }
