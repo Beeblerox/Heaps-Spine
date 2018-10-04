@@ -14,7 +14,7 @@ class Game extends hxd.App
 
     var b:h2d.Bitmap;
 
-    var skeleton:spine.SpinePlayer;
+    var skeletons:Array<spine.SpinePlayer>;
 
     override function init() 
     {
@@ -30,23 +30,34 @@ class Game extends hxd.App
         var sData = hxd.Res.load("spineboypro.json").toText();
         var skeletonData:SkeletonData = json.readSkeletonData(new spine.HeapsSkeletonFileHandle("spineboypro.json", sData));
 
-        skeleton = new spine.SpinePlayer(skeletonData, s2d);
-        skeleton.state.setAnimationByName(0,"walk",true);
-        skeleton.x = 300;
-        skeleton.y = 500;
+        skeletons = [];
 
-        var atlas:hxd.res.Atlas = hxd.Res.load("spineboy-pro.atlas").to(hxd.res.Atlas);
+        for (i in 0...10)
+        {
+            var skeleton = new spine.SpinePlayer(skeletonData, s2d);
+            skeleton.state.setAnimationByName(0,"walk",true);
+            skeleton.x = s2d.width * Math.random();
+            skeleton.y = 500;
+
+            skeletons.push(skeleton);
+        }
+
+        
+
+        /*var atlas:hxd.res.Atlas = hxd.Res.load("spineboy-pro.atlas").to(hxd.res.Atlas);
         var tile = atlas.get("crosshair");
         
         b = new h2d.Bitmap(tile, s2d);
-        b.tile = b.tile.center();
+        b.tile = b.tile.center();*/
     }
 
     override function update(dt:Float) 
     {
-        b.x = s2d.mouseX;
-        b.y = s2d.mouseY;
-
-        skeleton.advanceTime(1 / 60);
+     //   b.x = s2d.mouseX;
+      //  b.y = s2d.mouseY;
+        for (skeleton in skeletons)
+        {
+            skeleton.advanceTime(1 / 60);
+        }
     }
 }

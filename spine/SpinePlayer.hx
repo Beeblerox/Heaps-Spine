@@ -285,6 +285,8 @@ class SpinePlayer extends h2d.Drawable
 					g = region.getColor().g;
 					b = region.getColor().b;
 					a = region.getColor().a;
+
+                    
 				}
                 
 				if (atlasRegion != null)

@@ -12,7 +12,7 @@ crosshair
   offset: 0, 0
   index: -1
 dust01
-  rotate: false
+  rotate: true
   xy: 1239, 11
   size: 96, 73
   orig: 96, 73
@@ -47,7 +47,7 @@ eye-surprised
   offset: 0, 0
   index: -1
 front-bracer
-  rotate: false
+  rotate: true
   xy: 1749, 410
   size: 58, 80
   orig: 58, 80
@@ -96,7 +96,7 @@ front-upper-arm
   offset: 0, 0
   index: -1
 goggles
-  rotate: false
+  rotate: true
   xy: 1136, 109
   size: 261, 166
   orig: 261, 166
@@ -124,7 +124,7 @@ hoverboard-board
   offset: 0, 0
   index: -1
 hoverboard-thruster
-  rotate: false
+  rotate: true
   xy: 1207, 372
   size: 60, 64
   orig: 60, 64
@@ -138,21 +138,21 @@ hoverglow-small
   offset: 0, 0
   index: -1
 mouth-grind
-  rotate: false
+  rotate: true
   xy: 1610, 301
   size: 93, 59
   orig: 93, 59
   offset: 0, 0
   index: -1
 mouth-oooo
-  rotate: false
+  rotate: true
   xy: 1486, 139
   size: 93, 59
   orig: 93, 59
   offset: 0, 0
   index: -1
 mouth-smile
-  rotate: false
+  rotate: true
   xy: 1497, 44
   size: 93, 59
   orig: 93, 59
@@ -166,7 +166,7 @@ muzzle-glow
   offset: 0, 0
   index: -1
 muzzle-ring
-  rotate: false
+  rotate: true
   xy: 278, 32
   size: 49, 209
   orig: 49, 209
@@ -229,7 +229,7 @@ portal-flare1
   offset: 0, 0
   index: -1
 portal-flare2
-  rotate: false
+  rotate: true
   xy: 600, 375
   size: 114, 61
   orig: 114, 61
@@ -250,7 +250,7 @@ portal-shade
   offset: 0, 0
   index: -1
 portal-streaks1
-  rotate: false
+  rotate: true
   xy: 1753, 470
   size: 252, 256
   orig: 252, 256
@@ -264,7 +264,7 @@ portsl-streaks2
   offset: 0, 0
   index: -1
 rear-bracer
-  rotate: false
+  rotate: true
   xy: 1675, 447
   size: 56, 72
   orig: 56, 72
@@ -292,14 +292,14 @@ rear-thigh
   offset: 0, 0
   index: -1
 rear-upper-arm
-  rotate: false
+  rotate: true
   xy: 489, 2
   size: 47, 87
   orig: 47, 87
   offset: 0, 0
   index: -1
 torso
-  rotate: false
+  rotate: true
   xy: 1304, 134
   size: 98, 180
   orig: 98, 180
