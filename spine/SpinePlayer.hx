@@ -66,8 +66,8 @@ private class SpineContent extends h3d.prim.Primitive
 
     public inline function flush() 
     {
-		var growVertices:Bool = (verticesCount >= uploadedVertices);
-        var growIndices:Bool = (indexCount >= uploadedIndices);
+		var growVertices:Bool = (verticesCount > uploadedVertices);
+        var growIndices:Bool = (indexCount > uploadedIndices);
         
         if (growVertices || growIndices || buffer == null || indexes == null ||
             buffer.isDisposed() || indexes.isDisposed())
@@ -84,6 +84,11 @@ private class SpineContent extends h3d.prim.Primitive
             }
             
             alloc(h3d.Engine.getCurrent());
+        }
+        else
+        {
+            buffer.uploadVector(vertex, 0, Std.int(verticesCount / 8));
+            indexes.upload(index, 0, indexCount);
         }
 	}
 
