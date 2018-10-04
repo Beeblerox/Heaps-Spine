@@ -12,14 +12,11 @@ class Game extends hxd.App
         new Game();
     }
 
-    var b:h2d.Bitmap;
-
-    var skeletons:Array<spine.SpinePlayer>;
+    var skeletons:Array<spine.SpineAnimation>;
 
     override function init() 
     {
-        var tile = hxd.Res.load("spineboy-pro.png").toImage().toTile();
-        var loader:spine.HeapsTextureLoader = new spine.HeapsTextureLoader(tile);
+        var loader:spine.HeapsTextureLoader = new spine.HeapsTextureLoader("spineboy-pro.png");
         
         var atlasData = hxd.Res.load("spineboy-pro.atlas").toText();
         var atlas:TextureAtlas = new TextureAtlas(atlasData, loader);
@@ -27,18 +24,16 @@ class Game extends hxd.App
         var json:SkeletonJson = new SkeletonJson(new AtlasAttachmentLoader(atlas));
         json.setScale(0.6);
 
-        var sData = hxd.Res.load("spineboypro.json").toText();
-        var skeletonData:SkeletonData = json.readSkeletonData(new spine.HeapsSkeletonFileHandle("spineboypro.json", sData));
+        var skeletonData:SkeletonData = json.readSkeletonData(new spine.HeapsSkeletonFileHandle("spineboypro.json"));
 
         skeletons = [];
 
         for (i in 0...10)
         {
-            var skeleton = new spine.SpinePlayer(skeletonData, s2d);
+            var skeleton = new spine.SpineAnimation(skeletonData, s2d);
             skeleton.state.setAnimationByName(0,"walk",true);
             skeleton.x = s2d.width * Math.random();
             skeleton.y = 500;
-
             skeletons.push(skeleton);
         }
     }

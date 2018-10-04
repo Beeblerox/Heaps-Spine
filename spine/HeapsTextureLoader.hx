@@ -7,17 +7,19 @@ class HeapsTextureLoader implements TextureLoader
 {
 	private var _tile:h2d.Tile;
 
-	private var _ids:Map<AtlasRegion, Int>;
-
-	public function new(tile:h2d.Tile) {
-		this._tile = tile;
+	public function new(?path:String, ?tile:h2d.Tile) 
+    {
+		if (path != null && tile == null)
+            tile = hxd.Res.load(path).toImage().toTile();
+        
+        this._tile = tile;
 	}
 
 	public function loadPage(page:AtlasPage, path:String):Void {
 		var tile:h2d.Tile = this._tile;
 		if (tile == null)
 			throw ("Image not found with name: " + path);
-		_ids = new Map<AtlasRegion, Int>();
+
 		page.rendererObject = tile;
 		page.width = tile.width;
 		page.height = tile.height;
