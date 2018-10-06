@@ -1,6 +1,6 @@
 # Подключение библиотеки heaps
 -lib heaps
--lib openfl-spine
+-lib spine-hx
 # Подключение библиотеки hldx (работает только под Windows)
 # Альтернативно можно использовать hlsdl
 -lib hldx

@@ -129,6 +129,7 @@ class SpineSprite extends h2d.Drawable
 		super(parent);
 
         skeleton = new Skeleton(skeletonData);
+        skeleton.flipY = true;
         skeleton.updateWorldTransform();
 
         content = new SpineContent();
@@ -195,7 +196,13 @@ class SpineSprite extends h2d.Drawable
         var atlasRegion:AtlasRegion;
 		var slot:Slot;
         var regionColor:spine.support.graphics.Color = null;
+		var slotColor:spine.support.graphics.Color = null;
 		var r:Float = 0, g:Float = 0, b:Float = 0, a:Float = 0;
+		
+		var skeletonR:Float = skeleton.color.r;
+		var skeletonG:Float = skeleton.color.g;
+		var skeletonB:Float = skeleton.color.b;
+		var skeletonA:Float = skeleton.color.a;
 
         var triangles:Array<Int> = null;
 		var uvs:Array<Float> = null;
@@ -269,11 +276,13 @@ class SpineSprite extends h2d.Drawable
                 {
                     var region:MeshAttachment = cast slot.attachment;
                     
-                    region.computeWorldVertices(slot, 0, region.getWorldVerticesLength(), _tempVerticesArray, 0, 2);
+                    var regionVertices = region.getWorldVerticesLength();
+                    region.computeWorldVertices(slot, 0, regionVertices, _tempVerticesArray, 0, 2);
+                    
                     uvs = region.getUVs();
                     triangles = region.getTriangles();
 
-                    verticesLength = region.getWorldVerticesLength() >> 1;
+                    verticesLength = regionVertices >> 1;
                     indicesLength = triangles.length;
 
                     atlasRegion = cast region.getRegion();
@@ -286,11 +295,12 @@ class SpineSprite extends h2d.Drawable
                     {
                         tile = cast atlasRegion.page.rendererObject;
                     }
-
-                    r = regionColor.r;
-                    g = regionColor.g;
-                    b = regionColor.b;
-                    a = regionColor.a;
+					
+					slotColor = slot.color;
+                    r = regionColor.r * skeletonR * slotColor.r;
+                    g = regionColor.g * skeletonG * slotColor.g;
+                    b = regionColor.b * skeletonB * slotColor.b;
+                    a = regionColor.a * skeletonA * slotColor.a;
 
                     for (v in 0...verticesLength)
                     {

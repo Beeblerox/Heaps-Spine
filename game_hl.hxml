@@ -1,6 +1,6 @@
 -lib heaps
--lib hlsdl
--lib openfl-spine
+-lib hldx
+-lib spine-hx
 -hl game.hl
 -main Game
 
