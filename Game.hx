@@ -32,6 +32,7 @@ class Game extends hxd.App
         spineboySkeleton.state.setAnimationByName(0, "walk", true);
         spineboySkeleton.x = 200;
         spineboySkeleton.y = 500;
+        spineboySkeleton.smooth = true;
         skeletons.push(spineboySkeleton);
         
         var alienLoader:spine.HeapsTextureLoader = new spine.HeapsTextureLoader("alien.png");
@@ -49,6 +50,7 @@ class Game extends hxd.App
         alienSkeleton.x = s2d.width - 200;
         alienSkeleton.y = 500;
         alienSkeleton.scaleX = -1;
+        alienSkeleton.smooth = true;
         skeletons.push(alienSkeleton);
     }
 
