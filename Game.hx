@@ -29,10 +29,10 @@ class Game extends hxd.App
         var spineboySkeletonData:SkeletonData = json.readSkeletonData(new spine.HeapsSkeletonFileHandle("spineboy-pro.json"));
 
         var spineboySkeleton = new spine.SpineAnimation(spineboySkeletonData, s2d);
+        spineboySkeleton.state.addListener(new EventListener());
         spineboySkeleton.state.setAnimationByName(0, "walk", true);
         spineboySkeleton.x = 200;
         spineboySkeleton.y = 500;
-        spineboySkeleton.smooth = true;
         skeletons.push(spineboySkeleton);
         
         var alienLoader:spine.HeapsTextureLoader = new spine.HeapsTextureLoader("alien.png");
@@ -50,8 +50,10 @@ class Game extends hxd.App
         alienSkeleton.x = s2d.width - 200;
         alienSkeleton.y = 500;
         alienSkeleton.scaleX = -1;
-        alienSkeleton.smooth = true;
         skeletons.push(alienSkeleton);
+
+        spineboySkeleton.smooth = true;
+        alienSkeleton.smooth = true;
     }
 
     override function update(dt:Float) 
