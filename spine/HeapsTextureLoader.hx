@@ -21,8 +21,8 @@ class HeapsTextureLoader implements TextureLoader
 			throw ("Image not found with name: " + path);
 
 		page.rendererObject = tile;
-		page.width = tile.width;
-		page.height = tile.height;
+		page.width = Std.int(tile.width);
+		page.height = Std.int(tile.height);
 	}
 
 	public function loadRegion (region:AtlasRegion):Void 
